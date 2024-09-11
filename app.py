@@ -111,9 +111,14 @@ def index():
 if __name__ == "__main__":
     # Remove any existing webhooks
     bot.remove_webhook()
-    
+
     # Set webhook with the provided app URL
-    bot.set_webhook(url=APP_URL + BOT_TOKEN)
-    
+    webhook_url = APP_URL + '/' + BOT_TOKEN
+    try:
+        bot.set_webhook(url=webhook_url)
+        print(f"Webhook set to {webhook_url}")
+    except telebot.apihelper.ApiTelegramException as e:
+        print(f"Failed to set webhook: {e}")
+
     # Run the Flask app to keep the bot running
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
