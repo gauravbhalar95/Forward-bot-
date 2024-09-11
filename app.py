@@ -6,6 +6,8 @@ import logging
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 
+
+
 # Fetch the BOT_TOKEN from environment variables
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
@@ -13,6 +15,9 @@ if BOT_TOKEN is None:
     raise ValueError("Error: No BOT_TOKEN found in environment variables.")
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
+# Flask app
+app = Flask(__name__)
 
 # Global variables to store source and destination chat IDs
 sources = set()
