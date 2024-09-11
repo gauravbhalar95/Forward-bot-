@@ -1,12 +1,6 @@
 import os
 import telebot
-from telebot.types import Update
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-
-
+from flask import Flask
 
 # Fetch the BOT_TOKEN from environment variables
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -16,13 +10,16 @@ if BOT_TOKEN is None:
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-
+app = Flask(__name__)
 
 # Global variables to store source and destination chat IDs
 sources = set()
 destinations = set()
 forwarding_status = False
 
+# Define your bot commands here (same as your previous code)
+
+# The rest of the bot handlers...
 # Command to add a source channel
 @bot.message_handler(commands=['addsource'])
 def add_source(message):
@@ -101,11 +98,19 @@ def forward_message(message):
     for destination in destinations:
         bot.forward_message(destination, message.chat.id, message.message_id)
 
-# Command to stop the bot
-@bot.message_handler(commands=['stop'])
-def stop_bot(message):
-    bot.reply_to(message, "Bot is stopping...")
-    exit()
+# Start the bot in polling mode
+def start_bot():
+    bot.polling(none_stop=True)
 
-# Start polling
-bot.polling(none_stop=True)
+# Set up Flask route to keep the app alive
+@app.route('/')
+def index():
+    return "Bot is running!"
+
+if __name__ == "__main__":
+    from threading import Thread
+    # Start the bot polling in a separate thread
+    bot_thread = Thread(target=start_bot)
+    bot_thread.start()
+    # Run the Flask app
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
