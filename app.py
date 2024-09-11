@@ -1,15 +1,15 @@
 import os
 import telebot
-from flask import Flask
+from flask import Flask, request
 
-# Fetch the BOT_TOKEN from environment variables
+# Fetch the BOT_TOKEN and APP_URL from environment variables
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+APP_URL = os.getenv('APP_URL')  # Example: https://your-app.onrender.com
 
-if BOT_TOKEN is None:
-    raise ValueError("Error: No BOT_TOKEN found in environment variables.")
+if BOT_TOKEN is None or APP_URL is None:
+    raise ValueError("Error: BOT_TOKEN or APP_URL not found in environment variables.")
 
 bot = telebot.TeleBot(BOT_TOKEN)
-
 app = Flask(__name__)
 
 # Global variables to store source and destination chat IDs
@@ -17,9 +17,6 @@ sources = set()
 destinations = set()
 forwarding_status = False
 
-# Define your bot commands here (same as your previous code)
-
-# The rest of the bot handlers...
 # Command to add a source channel
 @bot.message_handler(commands=['addsource'])
 def add_source(message):
@@ -98,19 +95,25 @@ def forward_message(message):
     for destination in destinations:
         bot.forward_message(destination, message.chat.id, message.message_id)
 
-# Start the bot in polling mode
-def start_bot():
-    bot.polling(none_stop=True)
+# Webhook route to process incoming updates
+@app.route('/' + BOT_TOKEN, methods=['POST'])
+def receive_update():
+    json_str = request.get_data().decode('UTF-8')
+    update = telebot.types.Update.de_json(json_str)
+    bot.process_new_updates([update])
+    return '!', 200
 
-# Set up Flask route to keep the app alive
+# Index route to verify that the server is running
 @app.route('/')
 def index():
     return "Bot is running!"
 
 if __name__ == "__main__":
-    from threading import Thread
-    # Start the bot polling in a separate thread
-    bot_thread = Thread(target=start_bot)
-    bot_thread.start()
-    # Run the Flask app
+    # Remove any existing webhooks
+    bot.remove_webhook()
+    
+    # Set webhook with the provided app URL
+    bot.set_webhook(url=APP_URL + BOT_TOKEN)
+    
+    # Run the Flask app to keep the bot running
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
