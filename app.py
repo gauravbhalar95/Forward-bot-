@@ -16,8 +16,7 @@ if BOT_TOKEN is None:
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Flask app
-app = Flask(__name__)
+
 
 # Global variables to store source and destination chat IDs
 sources = set()
