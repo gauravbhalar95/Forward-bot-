@@ -12,7 +12,7 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-# Initialize Telegram bot client
+# Initialize Telegram client
 bot = TelegramClient('bot', API_ID, API_HASH)
 
 # Initialize configuration storage
@@ -32,10 +32,11 @@ async def handler(event):
         if event.chat_id in source_dest_config['sources']:
             for dest_chat_id in source_dest_config['destinations']:
                 try:
-                    # Forward message to all destination chat IDs
+                    # Forward the message to all destination chat IDs
                     await bot.send_message(dest_chat_id, event.message)
+                    print(f"Forwarded message from {event.chat_id} to {dest_chat_id}")
                 except Exception as e:
-                    print(f"Error forwarding message: {e}")
+                    print(f"Error forwarding message to {dest_chat_id}: {e}")
 
 @bot.on(events.NewMessage(pattern='/addsource'))
 async def add_source(event):
@@ -100,10 +101,10 @@ def run_bot():
     bot.run_until_disconnected()
 
 if __name__ == '__main__':
-    # Start bot in a separate thread
+    # Start the bot in a separate thread
     bot_thread = Thread(target=run_bot)
     bot_thread.start()
-    
+
     # Run the Flask app
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
