@@ -1,8 +1,10 @@
 import os
+import asyncio
 from telethon import TelegramClient, events
 from flask import Flask
+from threading import Thread
 
-# Initialize Flask app (for HTTP service on Render)
+# Initialize Flask app
 app = Flask(__name__)
 
 # Fetch API credentials from environment variables
@@ -11,7 +13,7 @@ API_HASH = os.getenv('API_HASH')
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 # Initialize Telegram bot client
-bot = TelegramClient('bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
+bot = TelegramClient('bot', API_ID, API_HASH)
 
 # Initialize configuration storage
 source_dest_config = {
@@ -93,8 +95,15 @@ async def deactivate(event):
     source_dest_config['active'] = False
     await event.respond('Message forwarding deactivated.')
 
+def run_bot():
+    bot.start(bot_token=BOT_TOKEN)
+    bot.run_until_disconnected()
+
 if __name__ == '__main__':
-    # Run the bot and Flask app
-    bot.start()
+    # Start bot in a separate thread
+    bot_thread = Thread(target=run_bot)
+    bot_thread.start()
+    
+    # Run the Flask app
     port = int(os.getenv('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
