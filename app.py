@@ -1,10 +1,8 @@
 import os
 from telethon import TelegramClient, events
-from telethon.tl.functions.messages import GetDialogsRequest
-from telethon.tl.types import PeerChannel, PeerUser, PeerChat
 from flask import Flask
 
-# Initialize Flask app (optional, if using web service)
+# Initialize Flask app (for HTTP service on Render)
 app = Flask(__name__)
 
 # Fetch API credentials from environment variables
@@ -31,44 +29,59 @@ async def handler(event):
     if source_dest_config['active']:
         if event.chat_id in source_dest_config['sources']:
             for dest_chat_id in source_dest_config['destinations']:
-                # Forward message to all destination chat IDs
-                await bot.send_message(dest_chat_id, event.message)
+                try:
+                    # Forward message to all destination chat IDs
+                    await bot.send_message(dest_chat_id, event.message)
+                except Exception as e:
+                    print(f"Error forwarding message: {e}")
 
 @bot.on(events.NewMessage(pattern='/addsource'))
 async def add_source(event):
-    chat_id = event.message.text.split(maxsplit=1)[1]
-    if chat_id.isdigit():
-        source_dest_config['sources'].add(int(chat_id))
-        await event.respond(f'Source chat ID {chat_id} added.')
-    else:
-        await event.respond('Invalid chat ID.')
+    try:
+        chat_id = event.message.text.split(maxsplit=1)[1]
+        if chat_id.isdigit():
+            source_dest_config['sources'].add(int(chat_id))
+            await event.respond(f'Source chat ID {chat_id} added.')
+        else:
+            await event.respond('Invalid chat ID.')
+    except Exception as e:
+        await event.respond(f"Error: {e}")
 
 @bot.on(events.NewMessage(pattern='/removesource'))
 async def remove_source(event):
-    chat_id = event.message.text.split(maxsplit=1)[1]
-    if chat_id.isdigit():
-        source_dest_config['sources'].discard(int(chat_id))
-        await event.respond(f'Source chat ID {chat_id} removed.')
-    else:
-        await event.respond('Invalid chat ID.')
+    try:
+        chat_id = event.message.text.split(maxsplit=1)[1]
+        if chat_id.isdigit():
+            source_dest_config['sources'].discard(int(chat_id))
+            await event.respond(f'Source chat ID {chat_id} removed.')
+        else:
+            await event.respond('Invalid chat ID.')
+    except Exception as e:
+        await event.respond(f"Error: {e}")
 
 @bot.on(events.NewMessage(pattern='/adddestination'))
 async def add_destination(event):
-    chat_id = event.message.text.split(maxsplit=1)[1]
-    if chat_id.isdigit():
-        source_dest_config['destinations'].add(int(chat_id))
-        await event.respond(f'Destination chat ID {chat_id} added.')
-    else:
-        await event.respond('Invalid chat ID.')
+    try:
+        chat_id = event.message.text.split(maxsplit=1)[1]
+        if chat_id.isdigit():
+            source_dest_config['destinations'].add(int(chat_id))
+            await event.respond(f'Destination chat ID {chat_id} added.')
+        else:
+            await event.respond('Invalid chat ID.')
+    except Exception as e:
+        await event.respond(f"Error: {e}")
 
 @bot.on(events.NewMessage(pattern='/removedestination'))
 async def remove_destination(event):
-    chat_id = event.message.text.split(maxsplit=1)[1]
-    if chat_id.isdigit():
-        source_dest_config['destinations'].discard(int(chat_id))
-        await event.respond(f'Destination chat ID {chat_id} removed.')
-    else:
-        await event.respond('Invalid chat ID.')
+    try:
+        chat_id = event.message.text.split(maxsplit=1)[1]
+        if chat_id.isdigit():
+            source_dest_config['destinations'].discard(int(chat_id))
+            await event.respond(f'Destination chat ID {chat_id} removed.')
+        else:
+            await event.respond('Invalid chat ID.')
+    except Exception as e:
+        await event.respond(f"Error: {e}")
 
 @bot.on(events.NewMessage(pattern='/activate'))
 async def activate(event):
